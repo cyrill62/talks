@@ -1,0 +1,313 @@
+---
+title:    How use Interactor to write services
+layout:   talks
+noindex:  true
+---
+
+| # Interactor
+  *How use Interactor to write services*
+
+  --
+
+  ## Who am I?
+
+  ![](/assets/images/avatar.png)
+
+  Cyril LEPAGNOT
+
+  Rails dev<br/>
+  Lead dev for [kisskissbankbank](http://www.kisskissbankbank.com) &
+  [hellomerci](https://www.hellomerci.com)<br/>
+  Remote worker
+
+  ---
+
+  ## The Rails Way
+
+  (basic usage, we put everything in the controller :x)
+
+  ```
+  class Product < ActiveRecord::Base
+    validates :name, presence: true
+  end
+  ```
+
+  ```
+  class ProductsController < ApplicationController
+    def create
+      @product = Product.new(params[:product])
+
+      if @product.save
+        add_to_stock
+        clear_index
+
+        redirect_to product
+      else
+        render :new, status: :unprocessable_entity
+      end
+    end
+
+    def product_params
+      params.require(:product).permit(:name, :price)
+  ```
+
+  --
+
+  ### Testing
+
+  ```
+  RSpec.describe ProductsController, type: :controller do
+    context 'with valid product' do
+      before do
+        post '/products', { product: { name: 'ice cream' } }
+      end
+      it { expect(response).to be(302) }
+      it { expect(Product.count).to eq(1) }
+    end
+
+    context 'with invalid product' do
+      before do
+        post '/products', { product: {} }
+      end
+      it { expect(response).to be(422) }
+      it { expect(Product.count).to eq(0) }
+    end
+  end
+  ```
+  *and more*
+
+  ---
+
+  ## Why services?
+
+  * Composable
+  * Easier to test
+  * Can be executed outside of controller
+
+  ---
+
+  I'm using Interactor gem.
+
+  https://github.com/collectiveidea/interactor
+
+  [![Collective Idea](http://collectiveidea.com/theme/546cbcdfedb2f32e0900a3fd/stylesheets/images/header-logo.svg)](http://collectiveidea.com/)
+
+  --
+
+  ## Claim
+
+  > “An interactor is a simple, single-purpose object. Interactors are used to encapsulate your application's business logic. Each interactor represents one thing that your application does.”
+
+  > ‒ Collective Idea, Interactor authors
+
+  --
+
+  ## Context
+
+  An interactor is given a context. The context contains everything the interactor needs to do its work.
+
+  When an interactor does its single purpose, it affects its given context.
+
+  ```
+  context.product = Product.find(context.product_id)
+  ```
+  --
+
+  ## Initialize the context
+
+  ```
+  service = Interactor.call(product_id: 1)
+  service.product_id # => 1
+  service.product.name # => "Ice cream"
+  ```
+
+  --
+
+  ## Success or Fail
+
+  ```
+  context.success? # => true
+  context.fail!(error: 'Wrong')
+  context.success? # => false
+  context.failure? # => true
+  context.error # => "Wrong"
+  ```
+
+  --
+
+  ## Hooks
+
+  *Can make things before **and/or** after the main operation*
+
+  ```
+  class SaveProduct
+    include Interactor
+
+    before { context.count = 0 }
+    after  { context.count += 1 }
+    around { context.count += 1 if context.product.try(:valid?) }
+
+    def call
+      # Do something
+    end
+  end
+  ```
+
+  --
+
+  ## Composability
+
+  *A service can have to make few operations*
+
+  ```
+  class CreateProduct
+    include Interactor
+
+    def call
+      filter_product_params
+      save_product
+      add_to_stock
+      clear_index
+    end
+
+    def filter_product_params
+      context.attributes = context.params
+                           .require(:product)
+                           .permit(:name, :price)
+    end
+
+    def save_product
+      ...
+    end
+  end
+  ```
+
+  --
+
+  ## Organizer
+
+  ```
+  class CreateProduct
+    include Interactor::Organizer
+
+    organize FilterProductParams,
+             SaveProduct,
+             AddToStock,
+             ClearIndex
+  end
+  ```
+
+  ```
+  class UpdateProduct
+    include Interactor::Organizer
+
+    organize FilterProductParams,
+             SaveProduct
+  end
+  ```
+
+  --
+
+  ## Rollback
+
+  *If an interactor in the queue fail previous interactors can rollback*
+
+  ```
+  class SaveProduct
+    include Interactor
+
+    def call
+      prod = Product.new(context.attributes)
+      prod.save
+      context.product = prod
+    end
+
+    def rollback
+      context.product.destroy
+    end
+  end
+  ```
+  ```
+  class AddToStock
+    include Interactor
+
+    def call
+      ProductStock.first.products << context.product
+      context.fail!(error: 'No more space in the area')
+    end
+  end
+  ```
+
+  ---
+
+  # TIPS
+
+  --
+
+  ## Testing your service
+
+  *made easy*
+
+  ```
+  RSpec.describe CreateProduct do
+    subject(:result) do
+      described_class.call(params: { product: product_params })
+    end
+
+    context 'with valid product' do
+      let(:product_params) { { name: 'ice cream' } }
+      it { expect(result).to be_a_success }
+      it { expect(result.product).to be_persisted }
+    end
+
+    context 'with invalid product' do
+      let(:product_params) { { } }
+      it { expect(result).not_to be_a_success }
+      it { expect(result.error).to eq('something went wrong') }
+    end
+  end
+  ```
+  --
+
+  ## Naming your services
+
+  *Name your interactors after your business logic, not your implementation. CancelAccount will serve you better than DestroyUser as the account cancellation interaction takes on more responsibility in the future.*
+
+  ```
+  ▾ app/
+    ▸ controllers/
+    ▸ helpers/
+    ▾ interactors/
+        authenticate_user.rb
+        cancel_account.rb
+        publish_post.rb
+        register_user.rb
+        remove_post.rb
+    ▸ mailers/
+    ▸ models/
+    ▸ views/
+  ```
+
+  --
+  ## With Rails
+
+  ```
+  gem "interactor-rails", "~> 2.0"
+  ```
+
+  *Interactor Rails ensures that app/interactors is included in your autoload
+  paths, and provides generators for your convenience.*
+
+  ---
+
+  ## Use Cases...
+
+  --
+
+  # All your business logic!
+
+  ---
+
+  ## Happy Hacking!
+
+  [@cyrill62](http://twitter.com/cyrill62)

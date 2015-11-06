@@ -1,0 +1,12 @@
+---
+title:    Talks
+layout:   talks
+noindex:  true
+---
+
+h1 Talks
+
+ul
+  - data.talks.each do |_code, talk|
+    li class="talks--talk-title" = link_to talk['title'],
+    "/talks/#{talk['link']}"

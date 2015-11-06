@@ -1,0 +1,30 @@
+@charset "utf-8";
+
+@import "reveal.js/css/reveal";
+@import "reveal.js/lib/css/zenburn";
+@import "talks/theme/cyrill62";
+
+footer {
+  bottom: 0.10em;
+  position: absolute;
+  width: 100%;
+  z-index: 15;
+
+  .banner {
+    min-height: 0.2em;
+  }
+
+  .footer--terms {
+    text-align: left;
+
+    p {
+      font-size: 0.30em;
+      margin: 0.2em 0.5em;
+    }
+  }
+}
+
+.talks--talk-title {
+  @extend h2;
+  list-style-type: none;
+}

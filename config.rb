@@ -11,7 +11,7 @@ activate :deploy do |deploy|
   deploy.method       = :git
   deploy.branch       = 'gh-pages'
   deploy.build_before = false # always use --no-clean options
-  deploy.strategy     = :submodule
+#  deploy.strategy     = :submodule
 end
 
 configure :build do

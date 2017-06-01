@@ -24,7 +24,8 @@ footer {
   }
 }
 
-.talks--talk-title {
+.reveal .talks--talk-title {
   @extend h2;
   list-style-type: none;
+  font-size: 2em;
 }

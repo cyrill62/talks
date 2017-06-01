@@ -1,0 +1,221 @@
+---
+title:    How use Interactor to write services
+layout:   talks
+noindex:  true
+---
+
+| # Batchman
+  *Chain and synchronize your tasks declaratively.*
+
+  --
+
+  ## Who am I?
+
+  [![](/assets/images/avatar.png)](https://github.com/cyrill62)
+
+  Cyril LEPAGNOT
+
+  Rails dev<br/>
+  Lead dev for [kisskissbankbank](http://www.kisskissbankbank.com) &
+  [hellomerci](https://www.hellomerci.com) &<br/>
+  [lendopolis](https://www.lendopolis.com)<br/>
+  Remote worker
+
+  ---
+
+  ## Why batchman ?
+
+  * We needs asynchronous workflows.
+  * We needs scalable workflows.
+  * We needs error recovery.
+  * We needs reporting.
+
+  ---
+
+  ## Datamodel
+
+  ![](/assets/images/batchman-erd.png)
+
+  --
+
+  ### The Workflow & Task State Machine
+
+  ```
+    pending -> started -> done
+                       \-> failed -> started -> done
+                                            \-> failed
+  ```
+
+  ---
+
+  ## DSL
+
+  A sample workflow showing how to build repeated tasks.
+
+  ```ruby
+  class ComputeSchedulesWorkflow < Batchman::Workflow
+    run CreateProjectSchedule,
+        # Params the workflow needs.
+        input: {
+          project_id: :project_id,
+          backers: :backers
+        }
+
+    run ComputeContributionSchedules,
+        input: {
+          maturity: :maturity
+        },
+        # When the task has to run.
+        after: {
+          CreateProjectSchedule => :schedules
+        },
+        # Run this task for each values of an array.
+        for_each: ->(context) { context.schedules }
+
+    # A workflow node can also be a workflow.
+    run NotifyProjectEndWorkflow,
+        input: {
+          :project_id, project_id,
+        },
+        after: {
+          CreateProjectSchedule => :_
+        },
+        for_each: ->(context) { context.backers }
+
+
+    run AggregateContributionSchedules,
+        after: {
+          ComputeContributionSchedules => :schedules
+        },
+        # The last task must have an #output.
+        output: true
+  end
+  ```
+  --
+
+  ## Tasks
+
+  ```ruby
+  class ComputeContributionSchedules
+    attr_reader :schedules, :output
+
+    def self.call(maturity:, schedules:, number:)
+      @schedules = schedules
+
+      schedule = schedules[number]
+      schedule[:schedule] = maturity.times.map do |n|
+        n * 10
+      end
+
+      @output = schedule
+    end
+  end
+  ```
+
+  --
+
+  ## Failures
+
+  ```ruby
+  class ComputeContributionSchedules
+    attr_reader :schedules, :output
+
+    def self.call(maturity:, schedules:, number:)
+      raise 'maturity should be >= 0' if maturity.zero?
+
+      @schedules = schedules
+
+      schedule = schedules[number]
+      schedule[:schedule] = maturity.times.map do |n|
+        n * 10
+      end
+
+      @output = schedule
+    end
+  end
+  ```
+
+  --
+
+  ### What happens when a task fails ?
+
+  * The failures are stored in *Batchman::Task#fail_message*.
+  * The *Batchman::Task#current_state* will be **failed**.
+  * The parent *Batchman::Workflow#current_state* stay to **started**.
+  * The *Batchman::Task* can be retried with **#retry**.
+
+  ---
+
+  ### How to launch a workflow ?
+
+  ```ruby
+  ComputeSchedulesWorkflow.do(
+    maturity: 30,
+    backers: %w(john paul)
+  )
+
+  # Wants to schedule a workflow ?
+  ComputeSchedulesWorkflow.do_in(
+    1.hour,
+    maturity: 30,
+    backers: %w(john paul)
+  )
+  ```
+
+  --
+
+  ## Testing your tasks
+
+  ```ruby
+  RSpec.describe CreateProduct do
+    subject(:result) do
+      described_class.call(product: product_params)
+    end
+
+    context 'with valid product' do
+      let(:product_params) { { name: 'ice cream' } }
+      it { expect(result.product).to be_persisted }
+    end
+
+    context 'with invalid product' do
+      let(:product_params) { { } }
+      it { expect(result).to raise_error }
+      it { expect(result.product).not_to be_persisted }
+    end
+  end
+  ```
+  --
+
+  ## Naming your workflows
+
+  ```sh
+  ▾ app/
+    ▸ controllers/
+    ▸ helpers/
+    ▾ workflows/
+        compute_schedules_workflow.rb
+        notify_project_end_workflow.rb
+        reimburse_backers_workflow.rb
+    ▾ tasks/
+      ▸ notify_project_end_tasks/
+      ▾ compute_schedules_tasks/
+        create_project_schedule.rb
+        compute_contribution_schedules.rb
+        aggregate_contribution_schedules.rb
+
+  ```
+
+  ---
+
+  ## Our use Cases :
+
+  * Caculate project repayments schedules.
+  * Plan Repayment debits.
+  * Send documents to an external service.
+  * Get signed documents from an external service.
+
+  ---
+
+  ## Happy Hacking!
+
+  [@cyrill62](http://twitter.com/cyrill62)

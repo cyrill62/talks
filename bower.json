@@ -14,7 +14,7 @@
     "tests"
   ],
   "dependencies": {
-    "foundation": "~5.5.2",
-    "reveal.js": "~3.1.0"
+    "foundation": "~5.5.3",
+    "reveal.js": "~3.5.0"
   }
 }

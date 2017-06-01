@@ -26,13 +26,13 @@ noindex:  true
 
   (basic usage, we put everything in the controller :x)
 
-  ```
+  ```ruby
   class Product < ActiveRecord::Base
     validates :name, presence: true
   end
   ```
 
-  ```
+  ```ruby
   class ProductsController < ApplicationController
     def create
       @product = Product.new(params[:product])
@@ -55,7 +55,7 @@ noindex:  true
 
   ### Testing
 
-  ```
+  ```ruby
   RSpec.describe ProductsController, type: :controller do
     context 'with valid product' do
       before do
@@ -100,7 +100,7 @@ noindex:  true
 
   > ‒ Collective Idea, Interactor authors
 
-  --
+  ---
 
   ## Context
 
@@ -108,14 +108,15 @@ noindex:  true
 
   When an interactor does its single purpose, it affects its given context.
 
-  ```
+  ```ruby
   context.product = Product.find(context.product_id)
   ```
+
   --
 
   ## Initialize the context
 
-  ```
+  ```ruby
   service = Interactor.call(product_id: 1)
   service.product_id # => 1
   service.product.name # => "Ice cream"
@@ -125,7 +126,7 @@ noindex:  true
 
   ## Success or Fail
 
-  ```
+  ```ruby
   context.success? # => true
   context.fail!(error: 'Wrong')
   context.success? # => false
@@ -139,7 +140,7 @@ noindex:  true
 
   *Can make things before **and/or** after the main operation*
 
-  ```
+  ```ruby
   class SaveProduct
     include Interactor
 
@@ -159,7 +160,7 @@ noindex:  true
 
   *A service can have to make few operations*
 
-  ```
+  ```ruby
   class CreateProduct
     include Interactor
 
@@ -186,7 +187,7 @@ noindex:  true
 
   ## Organizer
 
-  ```
+  ```ruby
   class CreateProduct
     include Interactor::Organizer
 
@@ -199,7 +200,7 @@ noindex:  true
 
   Share with other services
 
-  ```
+  ```ruby
   class UpdateProduct
     include Interactor::Organizer
 
@@ -214,7 +215,7 @@ noindex:  true
 
   *If an interactor in the queue fail, previous interactors can rollback*
 
-  ```
+  ```ruby
   class SaveProduct
     include Interactor
 
@@ -229,7 +230,10 @@ noindex:  true
     end
   end
   ```
-  ```
+
+  --
+
+  ```ruby
   class AddToStock
     include Interactor
 
@@ -250,7 +254,7 @@ noindex:  true
 
   *made easy*
 
-  ```
+  ```ruby
   RSpec.describe CreateProduct do
     subject(:result) do
       described_class.call(params: { product: product_params })
@@ -275,7 +279,7 @@ noindex:  true
 
   *Name your interactors after your business logic, not your implementation. CancelAccount will serve you better than DestroyUser as the account cancellation interaction takes on more responsibility in the future.*
 
-  ```
+  ```sh
   ▾ app/
     ▸ controllers/
     ▸ helpers/
@@ -293,7 +297,7 @@ noindex:  true
   --
   ## With Rails
 
-  ```
+  ```ruby
   gem "interactor-rails", "~> 2.0"
   ```
 

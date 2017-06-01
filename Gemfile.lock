@@ -139,10 +139,13 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  font-awesome-middleman (~> 4.2.3)
-  middleman (~> 3.3.12)
-  middleman-bower (~> 1.0.2)
-  middleman-deploy (~> 1.0.0)
-  middleman-livereload (~> 3.4.2)
-  slim (~> 3.0.6)
-  thor (~> 0.19.1)
+  font-awesome-middleman (>= 4.2.3)
+  middleman (>= 3.3.12)
+  middleman-bower (>= 1.0.2)
+  middleman-deploy (>= 1.0.0)
+  middleman-livereload (>= 3.4.2)
+  slim (>= 3.0.6)
+  thor (>= 0.19.1)
+
+BUNDLED WITH
+   1.15.0

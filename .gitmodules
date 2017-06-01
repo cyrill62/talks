@@ -1,4 +1,4 @@
 [submodule "build"]
 	path = build
-	url = git@github.com:cyrill62/talks.git
+	url = https://github.com/cyrill62/talks.git
 	branch = gh-pages

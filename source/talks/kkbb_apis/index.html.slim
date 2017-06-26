@@ -1,0 +1,200 @@
+---
+title:    How we builds our APIs
+layout:   talks
+noindex:  true
+---
+
+| # KissKissBankBank
+  *How we builds our APIs*
+
+  --
+
+  ## Who am I?
+
+  [![](/assets/images/avatar.png)](https://github.com/cyrill62)
+
+  Cyril LEPAGNOT
+
+  Rails dev & Devops<br/>
+  Lead dev for [kisskissbankbank](http://www.kisskissbankbank.com) &
+  [hellomerci](https://www.hellomerci.com)<br/>
+  Dev for [lendopolis](https://www.lendopolis.com)<br/>
+  Remote worker
+
+  ---
+
+  ## Why APIs ?
+
+  * We needs interoperability.
+  * We needs scalability.
+  * We needs metrics.
+
+  --
+
+  ## Which APIs ?
+
+  * Publics :
+    * Lendopolis.
+    * KissKissBankBank (soon...).
+  * Internals :
+    * PSP (MoneyMoneyMoney).
+    * Identity Management.
+
+  ---
+
+  ## Our technical choices
+
+  * _Format:_ JSON API (http://jsonapi.org)
+  * _Protocols:_ HTTPS
+  * _Backend:_ Ruby On Rails :tram: (http://rubyonrails.org)
+  * _Documentation:_ Apiary (https://apiary.io)
+
+  ---
+
+  ## JSON API
+
+  * JSON is easy
+  * Robust specifications :
+    * IO format
+    * links (auto discovery)
+    * Relationships
+    * Metadata
+    * Query parameters (Sorting, Pagination, Filtering, Fields, Inclusions)
+    * Error formats & response codes
+
+  --
+
+  ### Format sample
+
+  `Content-Type: application/vnd.api+json`
+
+  ```json
+  {
+    "data": {
+      "type": "articles", /*required*/
+      "id": "1", /*required*/
+      "attributes": {
+        "title": "JSON API paints my bikeshed!",
+        "length": 256
+      }
+    }
+  }
+  ```
+
+  --
+
+  ### Lists
+
+  ```json
+  {
+    "links": {
+      "self": "http://example.com/articles"
+    },
+    "data": [{
+      "type": "articles",
+      "id": "1",
+      "attributes": { "title": "JSON API paints my bikeshed!" }
+    }, {
+      "type": "articles",
+      "id": "2",
+      "attributes": { "title": "Rails is Omakase" }
+    }],
+    "meta": {
+      "count": 2
+    }
+  }
+  ```
+
+  --
+
+  ### Relationships
+
+  ```json
+  {
+    "data": {
+      "type": "articles",
+      "id": "1",
+      "attributes": {
+        "title": "JSON API paints my bikeshed!"
+      },
+      "relationships": {
+        "author": {
+          "data": {"id": "42", "type": "people"}
+        }
+      }
+    },
+    "included": [{
+      "type": "people",
+      "id": "42",
+      "attributes": {
+        "name": "John",
+        "age": 80,
+        "gender": "male"
+      }
+    }]
+  }
+  ```
+
+  --
+
+  ### Query parameters
+
+  ```
+  GET /people?sort=age
+  ```
+
+  ```
+  GET /people?page[number]=1&page[size]=10
+  ```
+
+  ```
+  GET /people?filter[name]=John
+  ```
+
+  ```
+  GET /people?include=location
+  ```
+
+  ```
+  GET /people/1?include=location&fields[location]=city,country
+  ```
+
+  ---
+
+  ## HTTPS
+
+  * Everybody can use
+  * Widely used
+  * Secured
+
+  ---
+
+  ## Ruby On Rails
+
+  * Our favorite backend Framework :cupid:
+  * Easy to maintain
+  * Flexible
+  * We use Grape plugin
+  * We use Trailblazer plugins
+
+  --
+
+  * Forms / Contracts
+  * Operators
+  * Representers
+  * Logging
+
+  ---
+
+  ## Apiary
+
+  * Hosted
+  * Reusable (Blueprint format https://apiblueprint.org)
+  * [Detailed Examples](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects)
+  * [Useful Console](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects?console=1)
+
+  ---
+
+  ## Happy Hacking!
+
+  [@cyrill62](http://twitter.com/cyrill62)

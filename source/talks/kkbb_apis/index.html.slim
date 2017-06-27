@@ -4,7 +4,7 @@ layout:   talks
 noindex:  true
 ---
 
-| # KissKissBankBank
+| ### KissKissBankBank
   *How we builds our APIs*
 
   --
@@ -16,9 +16,9 @@ noindex:  true
   Cyril LEPAGNOT
 
   Rails dev & Devops<br/>
-  Lead dev for [kisskissbankbank](http://www.kisskissbankbank.com) &
+  Lead dev for [KissKissBankBank](http://www.kisskissbankbank.com) &
   [hellomerci](https://www.hellomerci.com)<br/>
-  Dev for [lendopolis](https://www.lendopolis.com)<br/>
+  Dev for [LENDOPOLIS](https://www.lendopolis.com)<br/>
   Remote worker
 
   ---
@@ -28,24 +28,26 @@ noindex:  true
   * We needs interoperability.
   * We needs scalability.
   * We needs metrics.
+  * We needs to share resources.
 
   --
 
   ## Which APIs ?
 
-  * Publics :
+  * Public:
     * Lendopolis.
     * KissKissBankBank (soon...).
-  * Internals :
-    * PSP (MoneyMoneyMoney).
-    * Identity Management.
+  * Internal:
+    * :dollar: PSP.
+    * :man: Identity Management.
+    * And so on...
 
   ---
 
   ## Our technical choices
 
   * _Format:_ JSON API (http://jsonapi.org)
-  * _Protocols:_ HTTPS
+  * _Protocols:_ HTTPS, RESTful
   * _Backend:_ Ruby On Rails :tram: (http://rubyonrails.org)
   * _Documentation:_ Apiary (https://apiary.io)
 
@@ -53,7 +55,7 @@ noindex:  true
 
   ## JSON API
 
-  * JSON is easy
+  * JSON is easy.
   * Robust specifications :
     * IO format
     * links (auto discovery)
@@ -140,7 +142,7 @@ noindex:  true
   ### Query parameters
 
   ```
-  GET /people?sort=age
+  GET /people?sort=age            GET /people?sort=-age
   ```
 
   ```
@@ -156,42 +158,152 @@ noindex:  true
   ```
 
   ```
+  GET /people?fields[people]=name,age
+  ```
+
+  ```
   GET /people/1?include=location&fields[location]=city,country
+  ```
+
+  ```
+  GET /people?include=location&fields[location]=city,country&sort=-age&page[number]=1&page[size]=100
+  ```
+
+  --
+
+  ## Pagination
+
+  ```json
+  {
+    "meta": {
+      "total-pages": 13,
+      "count": 1,
+    },
+    "links": {
+      "self": "http://example.com/articles?page[number]=3&page[size]=1",
+      "first": "http://example.com/articles?page[number]=1&page[size]=1",
+      "prev": "http://example.com/articles?page[number]=2&page[size]=1",
+      "next": "http://example.com/articles?page[number]=4&page[size]=1",
+      "last": "http://example.com/articles?page[number]=13&page[size]=1"
+    },
+    "data": [
+      {
+        "type": "articles",
+        "id": "3",
+        "attributes": {
+          "title": "JSON API paints my bikeshed!",
+          "body": "The shortest article. Ever.",
+          "created": "2015-05-22T14:56:29.000Z",
+          "updated": "2015-05-22T14:56:28.000Z"
+        }
+      }
+    ]
+  }
+  ```
+
+  --
+
+  ## Errors
+
+  ```json
+  {
+    "errors": [
+      {
+        "status": "422",
+        "code": "XXXXX42",
+        "source": {
+          "pointer": "/data/attributes/first-name",
+          "parameter": "42"
+        },
+        "title":  "Invalid Attribute",
+        "detail": "First name must contain at least three characters.",
+        "links": {
+          "about": "http://documentation.api.org/path.html"
+        }
+      }
+    ]
+  }
   ```
 
   ---
 
   ## HTTPS
 
-  * Everybody can use
-  * Widely used
-  * Secured
+  * Everybody can use.
+  * Widely used.
+  * Secured.
 
   ---
 
   ## Ruby On Rails
 
   * Our favorite backend Framework :cupid:
-  * Easy to maintain
-  * Flexible
-  * We use Grape plugin
-  * We use Trailblazer plugins
+  * Easy to maintain.
+  * Flexible.
+  * We use the Grape plugin.
+  * We use Trailblazer plugins.
+  * A big community.
 
   --
 
-  * Forms / Contracts
-  * Operators
-  * Representers
-  * Logging
+  ## How ?
+
+  * Input validation:
+    * [JSON SCHEMA](http://json-schema.org)
+    * [Forms / Contracts](http://trailblazer.to/gems/operation/1.1/contract.html)
+  * [Operators](http://trailblazer.to/gems/operation/1.1/index.html):
+    * API actions
+    * Non API actions (console)
+  * [Representers](http://trailblazer.to/gems/roar/jsonapi.html):
+    * Define what to expose
+    * Format to JSON API
+  * Cloud Logging as JSON
 
   ---
 
   ## Apiary
 
-  * Hosted
-  * Reusable (Blueprint format https://apiblueprint.org)
-  * [Detailed Examples](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects)
-  * [Useful Console](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects?console=1)
+  _How we document our APIs_
+
+  * Reusable. (Blueprint format https://apiblueprint.org)
+  * [Detailed Examples](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects).
+  * [Useful Console](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects?console=1).
+  * Hosted.
+
+  ---
+
+  ## How to test ?
+
+  * A **sandbox** API endpoint.
+  * Through Apiary.
+
+  --
+
+  ## The sandbox
+
+  * Disconnected from the production.
+  * Similar to the production.
+  * Advanced features.
+  * Advanced Logging. (to help our testers)
+
+  --
+
+  ## How we made it ?
+
+  * Splitted DB. (1 for each tester)
+  * A graceful dataset. (aka 'seed')
+  * A special [API action](http://docs.sandboxlendopolis.apiary.io/#reference/sandbox/sandbox/reset) to reset it.
+  * Ruby on Rails + PostgreSQL = :cupid:
+
+  ---
+
+  # Webhooks
+
+  * HTTPS only
+  * Signed
+  * Dis/Activable
+  * Retry on failure
+  * Logging
 
   ---
 

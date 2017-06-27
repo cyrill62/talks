@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang=fr><head><title>How use Interactor to write services - Cyril LEPAGNOT</title><meta charset=utf-8 /><meta content="noindex,nofollow" name=robots /><meta content="width=device-width, initial-scale=1.0" name=viewport /><link href="/assets/images/favicon.ico" rel=icon type="image/ico"/><link href="/assets/stylesheets/talks.css" rel=stylesheet /><link href="//cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/css/basic/emojify.min.css" rel=stylesheet /><link href="//cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/css/data-uri/emojify.min.css" rel=stylesheet /></head><body class="talks talks_interactors talks_interactors_index"><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-69797026-1', 'auto');
+ga('send', 'pageview');</script><div class=reveal><div class=slides><section data-markdown="" data-separator="^---" data-separator-vertical="^--"><script type="text/template"># Interactors
+*How use Interactor to write services*
+
+--
+
+## Who am I?
+
+[![](/assets/images/avatar.png)](https://github.com/cyrill62)
+
+Cyril LEPAGNOT
+
+Rails dev<br/>
+Lead dev for [kisskissbankbank](http://www.kisskissbankbank.com) &
+[hellomerci](https://www.hellomerci.com)<br/>
+Remote worker
+
+---
+
+## The Rails Way
+
+(basic usage, we put everything in the controller :x)
+
+```ruby
+class Product < ActiveRecord::Base
+  validates :name, presence: true
+end
+```
+
+```ruby
+class ProductsController < ApplicationController
+  def create
+    @product = Product.new(params[:product])
+
+    if @product.save
+      add_to_stock
+      clear_index
+
+      redirect_to product
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def product_params
+    params.require(:product).permit(:name, :price)
+```
+
+--
+
+### Testing
+
+```ruby
+RSpec.describe ProductsController, type: :controller do
+  context 'with valid product' do
+    before do
+      post '/products', { product: { name: 'ice cream' } }
+    end
+    it { expect(response).to be(302) }
+    it { expect(Product.count).to eq(1) }
+  end
+
+  context 'with invalid product' do
+    before do
+      post '/products', { product: {} }
+    end
+    it { expect(response).to be(422) }
+    it { expect(Product.count).to eq(0) }
+  end
+end
+```
+*and more*
+
+---
+
+## Why services?
+
+* Composable
+* Easier to test
+* Can be executed outside of controller
+
+---
+
+I'm using Interactor gem.
+
+https://github.com/collectiveidea/interactor
+
+[![Collective Idea](http://collectiveidea.com/theme/546cbcdfedb2f32e0900a3fd/stylesheets/images/header-logo.svg)](http://collectiveidea.com/)
+
+--
+
+## Claim
+
+> “An interactor is a simple, single-purpose object. Interactors are used to encapsulate your application's business logic. Each interactor represents one thing that your application does.”
+
+> ‒ Collective Idea, Interactor authors
+
+---
+
+## Context
+
+An interactor is given a context. The context contains everything the interactor needs to do its work.
+
+When an interactor does its single purpose, it affects its given context.
+
+```ruby
+context.product = Product.find(context.product_id)
+```
+
+--
+
+## Initialize the context
+
+```ruby
+service = Interactor.call(product_id: 1)
+service.product_id # => 1
+service.product.name # => "Ice cream"
+```
+
+--
+
+## Success or Fail
+
+```ruby
+context.success? # => true
+context.fail!(error: 'Wrong')
+context.success? # => false
+context.failure? # => true
+context.error # => "Wrong"
+```
+
+--
+
+## Hooks
+
+*Can make things before **and/or** after the main operation*
+
+```ruby
+class SaveProduct
+  include Interactor
+
+  before { context.count = 0 }
+  after  { context.count += 1 }
+  around { context.count += 1 if context.product.try(:valid?) }
+
+  def call
+    # Do something
+  end
+end
+```
+
+--
+
+## Composability
+
+*A service can have to make few operations*
+
+```ruby
+class CreateProduct
+  include Interactor
+
+  def call
+    filter_product_params
+    save_product
+    add_to_stock
+    clear_index
+  end
+
+  def filter_product_params
+    context.attributes = context.params
+                         .require(:product)
+                         .permit(:name, :price)
+  end
+
+  def save_product
+    ...
+  end
+end
+```
+
+--
+
+## Organizer
+
+```ruby
+class CreateProduct
+  include Interactor::Organizer
+
+  organize FilterProductParams,
+           SaveProduct,
+           AddToStock,
+           ClearIndex
+end
+```
+
+Share with other services
+
+```ruby
+class UpdateProduct
+  include Interactor::Organizer
+
+  organize FilterProductParams,
+           SaveProduct
+end
+```
+
+--
+
+## Rollback
+
+*If an interactor in the queue fail, previous interactors can rollback*
+
+```ruby
+class SaveProduct
+  include Interactor
+
+  def call
+    prod = Product.new(context.attributes)
+    prod.save
+    context.product = prod
+  end
+
+  def rollback
+    context.product.destroy
+  end
+end
+```
+
+--
+
+```ruby
+class AddToStock
+  include Interactor
+
+  def call
+    ProductStock.first.products << context.product
+    context.fail!(error: 'No more space in the area')
+  end
+end
+```
+
+---
+
+# TIPS
+
+--
+
+## Testing your service
+
+*made easy*
+
+```ruby
+RSpec.describe CreateProduct do
+  subject(:result) do
+    described_class.call(params: { product: product_params })
+  end
+
+  context 'with valid product' do
+    let(:product_params) { { name: 'ice cream' } }
+    it { expect(result).to be_a_success }
+    it { expect(result.product).to be_persisted }
+  end
+
+  context 'with invalid product' do
+    let(:product_params) { { } }
+    it { expect(result).not_to be_a_success }
+    it { expect(result.error).to eq('something went wrong') }
+  end
+end
+```
+--
+
+## Naming your services
+
+*Name your interactors after your business logic, not your implementation. CancelAccount will serve you better than DestroyUser as the account cancellation interaction takes on more responsibility in the future.*
+
+```sh
+▾ app/
+  ▸ controllers/
+  ▸ helpers/
+  ▾ interactors/
+      authenticate_user.rb
+      cancel_account.rb
+      publish_post.rb
+      register_user.rb
+      remove_post.rb
+  ▸ mailers/
+  ▸ models/
+  ▸ views/
+```
+
+--
+## With Rails
+
+```ruby
+gem "interactor-rails", "~> 2.0"
+```
+
+*Interactor Rails ensures that app/interactors is included in your autoload
+paths, and provides generators for your convenience.*
+
+---
+
+## Use Cases...
+
+--
+
+# All your business logic!
+
+---
+
+## Happy Hacking!
+
+[@cyrill62](http://twitter.com/cyrill62)</script></section></div><footer><div class="row footer--terms"><div class="small-12 columns"><p><a href="talks.lepagnot.fr">cyrill62</a>- Pubilé sous <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA </a><span class=print-link>- Export <a href="?print-pdf">PDF </a></span></p></div></div><div class=banner></div></footer></div><script src="//cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/js/emojify.min.js"></script><script src="/assets/javascripts/talks.js"></script></body></html>

@@ -1,0 +1,5 @@
+Host: talks.lepagnot.fr
+
+User-agent: *
+
+Sitemap: http://talks.lepagnot.fr/sitemap.xml

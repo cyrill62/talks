@@ -16,19 +16,17 @@ ga('send', 'pageview');</script><div class=reveal><div class=slides><section dat
 Cyril LEPAGNOT
 
 Rails dev & Devops<br/>
-Lead dev for [KissKissBankBank](http://www.kisskissbankbank.com) &
-[hellomerci](https://www.hellomerci.com)<br/>
-Dev for [LENDOPOLIS](https://www.lendopolis.com)<br/>
+Lead dev at [KissKissBankBank & Co](http://www.kisskissbankbank.com)<br/>
 Remote worker
 
 ---
 
 ## Why APIs ?
 
-* We need interoperability.
-* We need scalability.
-* We need metrics.
-* We need to share resources.
+* Interoperability.
+* Scalability.
+* Metrics.
+* Share resources.
 
 --
 
@@ -44,7 +42,7 @@ Remote worker
 
 ---
 
-## Our technical choices
+## Technical choices
 
 * _Format:_ JSON API (http://jsonapi.org)
 * _Protocols:_ HTTPS, RESTful
@@ -55,14 +53,14 @@ Remote worker
 
 ## JSON API
 
-* JSON is easy.
-* Robust specifications :
+* JSON is simple & easy to read.
+* Robust specifications:
   * IO format
-  * links (auto discovery)
   * Relationships
-  * Metadata
   * Query parameters (Sorting, Pagination, Filtering, Fields, Inclusions)
   * Error formats & response codes
+  * links (auto discovery)
+  * Metadata
 
 --
 
@@ -89,9 +87,6 @@ Remote worker
 
 ```json
 {
-  "links": {
-    "self": "http://example.com/articles"
-  },
   "data": [{
     "type": "articles",
     "id": "1",
@@ -101,9 +96,6 @@ Remote worker
     "id": "2",
     "attributes": { "title": "Rails is Omakase" }
   }],
-  "meta": {
-    "count": 2
-  }
 }
 ```
 
@@ -218,7 +210,7 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
       "title":  "Invalid Attribute",
       "detail": "First name must contain at least three characters.",
       "links": {
-        "about": "http://documentation.api.org/path.html"
+        "about": "http://documentation.api.org/errors.html"
       }
     }
   ]
@@ -229,9 +221,9 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
 
 ## HTTPS
 
-* Everybody can use.
-* Widely used.
 * Secure.
+* Everybody can use it.
+* Widely used.
 
 ---
 
@@ -240,9 +232,9 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
 * Our favorite backend Framework :cupid:
 * Easy to maintain.
 * Flexible.
-* We use the Grape plugin.
-* We use Trailblazer plugins.
 * A big community.
+* Grape.
+* Trailblazer (Operation, Representer, Policy).
 
 --
 
@@ -251,19 +243,19 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
 * Input validation:
   * [JSON SCHEMA](http://json-schema.org)
   * [Forms / Contracts](http://trailblazer.to/gems/operation/1.1/contract.html)
-* [Operators](http://trailblazer.to/gems/operation/1.1/index.html):
+* [Operations](http://trailblazer.to/gems/operation/1.1/index.html):
   * API actions
   * Non API actions (console)
 * [Representers](http://trailblazer.to/gems/roar/jsonapi.html):
   * Define what to expose
   * Format to JSON API
-* Cloud Logging as JSON
+* Logging as JSON Cloud.
 
 ---
 
 ## Apiary
 
-_How we document our APIs_
+_How we document APIs_
 
 * Reusable. (Blueprint format https://apiblueprint.org)
 * [Detailed Examples](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects).
@@ -283,7 +275,6 @@ _How we document our APIs_
 
 * Disconnected from production.
 * Similar to production.
-* Advanced features.
 * Advanced Logging. (to help our testers)
 
 --

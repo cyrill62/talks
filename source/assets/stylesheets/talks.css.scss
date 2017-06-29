@@ -22,14 +22,6 @@ footer {
       margin: 0.2em 0.5em;
     }
   }
-  .banner .logo {
-    margin: 0 auto;
-    background-image: url(<%= asset_path(:images, 'kkbb.png') %>);
-    background-size: 110px 90px;
-    background-repeat: no-repeat;
-    height: 90px;
-    width: 110px;
-  }
 }
 
 .reveal .talks--talk-title {

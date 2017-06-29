@@ -4,7 +4,8 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-69797026-1', 'auto');
-ga('send', 'pageview');</script><div class=reveal><div class=slides><section data-markdown="" data-separator="^---" data-separator-vertical="^--"><script type="text/template">### KissKissBankBank
+ga('send', 'pageview');</script><div class=reveal><div class=slides><section data-markdown="" data-separator="^---" data-separator-vertical="^--"><script type="text/template">![](/assets/images/kkbb.png)
+### KissKissBankBank
 *How we build APIs*
 
 --
@@ -45,7 +46,7 @@ Remote worker
 ## Technical choices
 
 * _Format:_ JSON API (http://jsonapi.org)
-* _Protocols:_ HTTPS, RESTful
+* _Protocols:_ HTTP, REST
 * _Backend:_ Ruby On Rails :tram: (http://rubyonrails.org)
 * _Documentation:_ Apiary (https://apiary.io)
 
@@ -233,8 +234,8 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
 * Easy to maintain.
 * Flexible.
 * A big community.
-* Grape.
-* Trailblazer (Operation, Representer, Policy).
+* [Grape](http://www.ruby-grape.org).
+* [Trailblazer](http://trailblazer.to) (Operation, Representer, Policy).
 
 --
 
@@ -257,8 +258,8 @@ GET /people?include=location&fields[location]=city,country&sort=-age&page[number
 _How we document APIs_
 
 * Reusable. (Blueprint format https://apiblueprint.org)
-* [Detailed Examples](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects).
-* [Useful Console](http://docs.lendotestapi.apiary.io/#reference/project/project-collection/list-all-projects?console=1).
+* [Detailed Examples](http://docs.pandurangpatil.apiary.io/#reference/user/user-collection/list-all-users).
+* [Useful Console](http://docs.pandurangpatil.apiary.io/#reference/user/user-collection/list-all-users?console=1).
 * Hosted.
 
 ---
@@ -282,7 +283,7 @@ _How we document APIs_
 
 * Splitted DB. (1 for each tester)
 * A graceful dataset. (aka 'seed')
-* A special [API action](http://docs.sandboxlendopolis.apiary.io/#reference/sandbox/sandbox/reset) to reset it.
+* An API action to reset it.
 * Ruby on Rails + PostgreSQL = :cupid:
 
 ---
@@ -299,4 +300,4 @@ _How we document APIs_
 
 ## Happy Hacking!
 
-[@cyrill62](http://twitter.com/cyrill62)<div class="logo"></div></script></section></div><footer><div class="row footer--terms"><div class="small-12 columns"><p><a href="talks.lepagnot.fr">cyrill62</a>- Pubilé sous <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA </a><span class=print-link>- Export <a href="?print-pdf">PDF </a></span></p></div></div><div class=banner><div class=logo></div></div></footer></div><script src="//cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/js/emojify.min.js"></script><script src="/assets/javascripts/talks.js"></script></body></html>
+[@cyrill62](http://twitter.com/cyrill62)</script></section></div><footer><div class="row footer--terms"><div class="small-12 columns"><p><a href="talks.lepagnot.fr">cyrill62</a>- Pubilé sous <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA </a><span class=print-link>- Export <a href="?print-pdf">PDF </a></span></p></div></div><div class=banner></div></footer></div><script src="//cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/js/emojify.min.js"></script><script src="/assets/javascripts/talks.js"></script></body></html>
